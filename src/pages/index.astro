@@ -1,23 +1,58 @@
 ---
+import { sanityClient } from "sanity:client";
+import imageUrlBuilder from '@sanity/image-url';
 
+// Sanity'den verileri çekiyoruz
+const anaSayfaVerisi = await sanityClient.fetch(`*[_type == "anaSayfa"][0]`);
+const projeler = await sanityClient.fetch(`*[_type == "proje"]`);
+
+// Resim yollarını oluşturmak için yardımcı araç
+const builder = imageUrlBuilder(sanityClient);
+function urlFor(source) {
+  return builder.image(source);
+}
 ---
 
-<html lang="en">
-	<head>
-		<link rel="stylesheet" href="/src/styles.css" />
-		<meta charset="utf-8" />
-		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-		<link rel="icon" href="/favicon.ico" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
-		<title>Hasan Yılmaz'ın İnternet Sitesi</title>
-	</head>
-	<body>
-		<h1>Tasarım bir Problem Çözmedir</h1>
-		<p>Grafik tasarımcı ve dijital üretici.</p>
-		<button>Hakkımda</button>
-		<button>Portfolyo</button>
-		<button>İletişim</button>
-		<img src="/resim.png" alt="Ekran görseli" />
-	</body>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Hasan Design Studio</title>
+    <style>
+      body { font-family: sans-serif; padding: 3rem; max-width: 900px; margin: auto; background: #fafafa; }
+      .proje-karti { 
+        background: white; border: 1px solid #eee; padding: 2rem; 
+        margin-bottom: 2rem; border-radius: 15px; list-style: none;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+      }
+      .proje-resmi { 
+        width: 100%; height: auto; border-radius: 10px; margin-top: 1rem;
+        display: block;
+      }
+      h1 { border-bottom: 3px solid #333; padding-bottom: 1rem; }
+    </style>
+  </head>
+  <body>
+    <h1>{anaSayfaVerisi?.anaBaslik}</h1>
+
+    <section>
+      <h2>Portfolyo</h2>
+      <ul>
+        {projeler.map((proje) => (
+          <li class="proje-karti">
+            <h3>{proje.projeBasligi}</h3>
+            <p>{proje.projeAciklamasi}</p>
+            
+            {/* Eğer resim varsa göster */}
+            {proje.projeGorseli && (
+              <img 
+                src={urlFor(proje.projeGorseli).width(800).url()} 
+                alt={proje.projeBasligi} 
+                class="proje-resmi"
+              />
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  </body>
 </html>
